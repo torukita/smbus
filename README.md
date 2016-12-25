@@ -1,12 +1,13 @@
-# go-smbus
+# smbus
 Go bindings for the System Management Bus (SMBus) kernel interface
-This package provides simple bindings for the SMBus interfaces provided by the i2c-dev driver. I wrote this for the Raspberry Pi platform.
+This package provides simple bindings for the SMBus interfaces provided by the i2c-dev driver.
+I wrote this based on https://github.com/corrupt/go-smbus
 
 **This code is largely untested. I'll happily accept a pull request for any bugs you might find**
 
 ## Installation
 
-    go get github.com/corrupt/go-smbus
+    go get github.com/torukita/smbus
 
 ## Usage
 
