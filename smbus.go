@@ -74,6 +74,7 @@ func (smb *smbus) open() error {
 		return err
 	}
 	smb.file = f
+	smb.opened = true
 	return nil
 }
 
@@ -98,7 +99,7 @@ func ioctl(fd, cmd, arg uintptr) error {
 }
 
 // Sends a single bit to the device, at the place of the Rd/Wr bit.
-func (smb smbus) WriteQuick(addr, value byte) error {
+func (smb *smbus) WriteQuick(addr, value byte) error {
 	smb.mutex.Lock()
 	defer smb.mutex.Unlock()
 	if err := smb.open(); err != nil {
@@ -115,7 +116,7 @@ func (smb smbus) WriteQuick(addr, value byte) error {
 // register. Some devices are so simple that this interface is enough;
 // for others, it is a shorthand if you want to read the same register
 // as in the previous smbus command.
-func (smb smbus) ReadByte(addr byte) (byte, error) {
+func (smb *smbus) ReadByte(addr byte) (byte, error) {
 	smb.mutex.Lock()
 	defer smb.mutex.Unlock()
 	if err := smb.open(); err != nil {
@@ -133,7 +134,7 @@ func (smb smbus) ReadByte(addr byte) (byte, error) {
 
 // This operation is the reverse of Receive Byte: it sends a single
 // byte to a device. See Receive Byte for more information.
-func (smb smbus) WriteByte(addr, value byte) error {
+func (smb *smbus) WriteByte(addr, value byte) error {
 	smb.mutex.Lock()
 	defer smb.mutex.Unlock()
 	if err := smb.open(); err != nil {
@@ -148,7 +149,7 @@ func (smb smbus) WriteByte(addr, value byte) error {
 
 // Reads a single byte from a device, from a designated register.
 // The register is specified through the cmd byte
-func (smb smbus) ReadByteData(addr, cmd byte) (byte, error) {
+func (smb *smbus) ReadByteData(addr, cmd byte) (byte, error) {
 	smb.mutex.Lock()
 	defer smb.mutex.Unlock()
 	if err := smb.open(); err != nil {
@@ -167,7 +168,7 @@ func (smb smbus) ReadByteData(addr, cmd byte) (byte, error) {
 // Writes a single byte to a device, to a designated register. The
 // register is specified through the cmd byte. This is the opposite
 // of the Read Byte operation.
-func (smb smbus) WriteByteData(addr, cmd, value byte) error {
+func (smb *smbus) WriteByteData(addr, cmd, value byte) error {
 	smb.mutex.Lock()
 	defer smb.mutex.Unlock()
 	if err := smb.open(); err != nil {
@@ -202,7 +203,7 @@ func (smb *smbus) ReadWordData(addr, cmd byte) (uint16, error) {
 // This is the opposite of the Read Word operation. 16 bits
 // of data is written to a device, to the designated register that is
 // specified through the cmd byte.
-func (smb smbus) WriteWordData(addr, cmd byte, value uint16) error {
+func (smb *smbus) WriteWordData(addr, cmd byte, value uint16) error {
 	smb.mutex.Lock()
 	defer smb.mutex.Unlock()
 	if err := smb.open(); err != nil {
@@ -217,7 +218,7 @@ func (smb smbus) WriteWordData(addr, cmd byte, value uint16) error {
 
 // This command selects a device register (through the cmd byte), sends
 // 16 bits of data to it, and reads 16 bits of data in return.
-func (smb smbus) ProcessCall(addr, cmd byte, value uint16) (uint16, error) {
+func (smb *smbus) ProcessCall(addr, cmd byte, value uint16) (uint16, error) {
 	smb.mutex.Lock()
 	defer smb.mutex.Unlock()
 	if err := smb.open(); err != nil {
@@ -237,7 +238,7 @@ func (smb smbus) ProcessCall(addr, cmd byte, value uint16) (uint16, error) {
 // designated register that is specified through the cmd byte. The amount
 // of data in byte is specified by the length of the buf slice.
 // To read 4 bytes of data, pass a slice created like this: make([]byte, 4)
-func (smb smbus) ReadBlockData(addr, cmd byte, buf []byte) (int, error) {
+func (smb *smbus) ReadBlockData(addr, cmd byte, buf []byte) (int, error) {
 	smb.mutex.Lock()
 	defer smb.mutex.Unlock()
 	if err := smb.open(); err != nil {
@@ -257,7 +258,7 @@ func (smb smbus) ReadBlockData(addr, cmd byte, buf []byte) (int, error) {
 // The opposite of the Block Read command, this writes up to 32 bytes to
 // a device, to a designated register that is specified through the
 // cmd byte. The amount of data is specified by the lengts of buf.
-func (smb smbus) WriteBlockData(addr, cmd byte, buf []byte) (int, error) {
+func (smb *smbus) WriteBlockData(addr, cmd byte, buf []byte) (int, error) {
 	smb.mutex.Lock()
 	defer smb.mutex.Unlock()
 	if err := smb.open(); err != nil {
@@ -271,7 +272,7 @@ func (smb smbus) WriteBlockData(addr, cmd byte, buf []byte) (int, error) {
 }
 
 // Block read method for devices without smbus support. Uses plain i2c interface
-func (smb smbus) ReadI2cBlockData(addr, cmd byte, buf []byte) (int, error) {
+func (smb *smbus) ReadI2cBlockData(addr, cmd byte, buf []byte) (int, error) {
 	smb.mutex.Lock()
 	defer smb.mutex.Unlock()
 	if err := smb.open(); err != nil {
@@ -285,7 +286,7 @@ func (smb smbus) ReadI2cBlockData(addr, cmd byte, buf []byte) (int, error) {
 }
 
 // Block write method for devices without smbus support. Uses plain i2c interface
-func (smb smbus) WriteI2cBlockData(addr, cmd byte, buf []byte) (int, error) {
+func (smb *smbus) WriteI2cBlockData(addr, cmd byte, buf []byte) (int, error) {
 	smb.mutex.Lock()
 	defer smb.mutex.Unlock()
 	if err := smb.open(); err != nil {
@@ -300,7 +301,7 @@ func (smb smbus) WriteI2cBlockData(addr, cmd byte, buf []byte) (int, error) {
 
 // This command selects a device register (through the cmd byte), sends
 // 1 to 31 bytes of data to it, and reads 1 to 31 bytes of data in return.
-func (smb smbus) BlockProcessCall(addr, cmd byte, buf []byte) ([]byte, error) {
+func (smb *smbus) BlockProcessCall(addr, cmd byte, buf []byte) ([]byte, error) {
 	smb.mutex.Lock()
 	defer smb.mutex.Unlock()
 	if err := smb.open(); err != nil {
